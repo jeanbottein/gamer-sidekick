@@ -125,15 +125,13 @@ def load_and_ajust_manifest(manifest_path):
         return manifest
 
 def create_main_manifest(games_dir):
-    main_manifest = []
     manifests = find_manifests(games_dir)
-
+    main_manifest = []
     for manifest_path in manifests:
         manifest = load_and_ajust_manifest(manifest_path)
         main_manifest.append(manifest)
         logger.info(f"Found {manifest['title']} ")
 
-    # Write the main manifest to a JSON file
     main_manifest_path = os.path.join(games_dir, manifests_filename)
     with open(main_manifest_path, 'w') as f:
         json.dump(main_manifest, f, indent=4)
@@ -141,17 +139,9 @@ def create_main_manifest(games_dir):
     logger.info(f"Manifests file created at: {main_manifest_path}")
 
 def run(config: dict):
-    """Primary entrypoint: expects a config dict.
-
-    Uses FREEGAMES_PATH if provided; otherwise defaults to a sibling 'games' directory
-    relative to the repository root (assumed to be two levels up from this file).
-    """
-    # Try config override first
-    games_dir = config.get('FREEGAMES_PATH')
-    if not games_dir:
-        # Default: repo_root/games
-        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-        games_dir = os.path.join(repo_root, 'games')
+    games_dir = config.get('FREEGAMES_PATH') or os.path.join(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), 'games'
+    )
 
     if not os.path.isdir(games_dir):
         logger.warning(f"{games_dir} is not a valid directory.")
