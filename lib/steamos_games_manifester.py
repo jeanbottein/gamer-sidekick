@@ -138,20 +138,6 @@ def create_main_manifest(games_dir):
 
     print(f"Manifests file created at: {main_manifest_path}")
 
-
-def main(games_dir):
-    if not os.path.isdir(games_dir):
-        print(f"Error: {games_dir} is not a valid directory.")
-        return
-
-    for item in os.listdir(games_dir):
-        item_path = os.path.join(games_dir, item)
-        if os.path.isdir(item_path):
-            createManifest(item_path)
-
-    create_main_manifest(games_dir)
-
-
 def run(config: dict):
     """Primary entrypoint: expects a config dict.
 
@@ -164,4 +150,14 @@ def run(config: dict):
         # Default: repo_root/games
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
         games_dir = os.path.join(repo_root, 'games')
-    return main(games_dir)
+
+    if not os.path.isdir(games_dir):
+        print(f"{games_dir} is not a valid directory.")
+        return
+
+    for item in os.listdir(games_dir):
+        item_path = os.path.join(games_dir, item)
+        if os.path.isdir(item_path):
+            createManifest(item_path)
+
+    create_main_manifest(games_dir)

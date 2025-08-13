@@ -1,7 +1,7 @@
 # Paths
 EMUDECK_PATH=/run/media/deck/SteamDeck-SD/Emulation
-FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/steam-sidekick/games
-PATCHES_PATH=/run/media/deck/SteamDeck-SD/steam-sidekick/patches
+FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
+PATCHES_PATH=/run/media/deck/SteamDeck-SD/patches
 
 # Ryujinx settings
 RYUJINX_LANGUAGE_CODE=fr_FR

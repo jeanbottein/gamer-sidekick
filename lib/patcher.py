@@ -95,22 +95,14 @@ def process_patch_file(json_file):
         for games_folder in flatten_game_folders(GAMES_FOLDERS):
             apply_patch(patch, games_folder.strip(), patch_folder)
 
-def main():
+
+def run(config: dict):
+    PATCHES_FOLDER = config.get('PATCHES_PATH')
+    if not os.path.isdir(PATCHES_FOLDER):
+        print(f"{PATCHES_FOLDER} is not a valid directory.")
+        return
+
     for patch_folder in os.listdir(PATCHES_FOLDER):
         json_file = os.path.join(PATCHES_FOLDER, patch_folder, 'patch.json')
         if os.path.exists(json_file):
             process_patch_file(json_file)
-
-
-def run(config: dict):
-    """Primary entrypoint: expects a config dict.
-
-    Allows overriding the patches folder with PATCHES_PATH in config.
-    """
-    global PATCHES_FOLDER
-    original = PATCHES_FOLDER
-    try:
-        PATCHES_FOLDER = config.get('PATCHES_PATH', PATCHES_FOLDER)
-        return main()
-    finally:
-        PATCHES_FOLDER = original
