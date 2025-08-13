@@ -4,8 +4,7 @@ import re
 import logging
 from pathlib import Path
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("configurer")
 
 def load_config_file(file_path):
     """Load environment variables from a config file."""
@@ -21,9 +20,9 @@ def load_config_file(file_path):
                     if key and value:  # Ignore if the variable is empty
                         os.environ[key] = value
                     elif key:  # If only key is present, ignore the empty value
-                        print(f"Warning: Variable '{key}' has an empty value. Skipping.")
+                        logger.warning(f"Variable '{key}' has an empty value. Skipping.")
                 else:
-                    print(f"Warning: Invalid line format: '{line}'. Skipping.")
+                    logger.warning(f"Invalid line format: '{line}'. Skipping.")
 
 def interpret_env(value, config_vars: dict, *, log_level: str = 'warning'):
     """Backward-compatible resolver with logging; prefer resolve_with_missing in new code."""
@@ -35,9 +34,9 @@ def interpret_env(value, config_vars: dict, *, log_level: str = 'warning'):
                 f"Skipping impacted configuration."
             )
             if log_level == 'info':
-                logging.info(msg)
+                logger.info(msg)
             else:
-                logging.warning(msg)
+                logger.warning(msg)
             return None
         return resolved
     return value
@@ -72,7 +71,7 @@ def load_apps_config(config_vars: dict):
         resolved_path, missing = resolve_with_missing(config['path'], config_vars)
         config['path'] = resolved_path
         if config['path'] is None:
-            logging.warning(
+            logger.warning(
                 f"Skipping {app}: path contains undefined variables: {', '.join(missing)}."
             )
             config['replacements'] = []
@@ -87,7 +86,7 @@ def load_apps_config(config_vars: dict):
                 value, miss_v = resolve_with_missing(entry.get('value', ''), config_vars)
                 missing = [*miss_p, *miss_v]
                 if missing:
-                    logging.info(
+                    logger.info(
                         f"Skipping replacement '{name}': undefined variables: {', '.join(missing)}."
                     )
                     continue
@@ -97,13 +96,13 @@ def load_apps_config(config_vars: dict):
                 try:
                     pattern_raw, value_raw = entry
                 except Exception:
-                    logging.info(f"Skipping invalid replacement entry: {entry}")
+                    logger.info(f"Skipping invalid replacement entry: {entry}")
                     continue
                 pattern, miss_p = resolve_with_missing(pattern_raw, config_vars)
                 value, miss_v = resolve_with_missing(value_raw, config_vars)
                 missing = [*miss_p, *miss_v]
                 if missing:
-                    logging.info(
+                    logger.info(
                         f"Skipping legacy replacement '{pattern_raw}': undefined variables: {', '.join(missing)}."
                     )
                     continue
@@ -115,13 +114,13 @@ def load_apps_config(config_vars: dict):
 def modify_file(file_path, replacements):
     # Validate path
     if not file_path or not isinstance(file_path, (str, os.PathLike)):
-        logging.info("No valid path provided; skipping modifications.")
+        logger.info("No valid path provided; skipping modifications.")
         return
     if not os.path.exists(file_path):
-        logging.warning(f"File {file_path} does not exist.")
+        logger.warning(f"File {file_path} does not exist.")
         return
     if not replacements:
-        logging.info(f"No replacements to apply for file {file_path}. Skipping.")
+        logger.info(f"No replacements to apply for file {file_path}. Skipping.")
         return
 
     with open(file_path, 'r') as file:
@@ -137,21 +136,21 @@ def modify_file(file_path, replacements):
             try:
                 pattern, value = rep
             except Exception:
-                logging.info(f"Skipping invalid replacement entry: {rep}")
+                logger.info(f"Skipping invalid replacement entry: {rep}")
                 continue
             name = str(pattern)
 
         # Use re.search to check if the pattern exists in the content
         if re.search(pattern, content):
             content = re.sub(pattern, value, content)
-            logging.info(f"[{name}] Replaced pattern in file {file_path}.")
+            logger.info(f"[{name}] Replaced pattern in file {file_path}.")
             modified = True
     if modified:
         with open(file_path, 'w') as file:
             file.write(content)
-        logging.info(f"Modified file {file_path} successfully.")
+        logger.info(f"Modified file {file_path} successfully.")
     else:
-        logging.info(f"No changes made to file {file_path}.")
+        logger.info(f"No changes made to file {file_path}.")
 
 
 def configure_apps(config_vars: dict):
@@ -160,9 +159,9 @@ def configure_apps(config_vars: dict):
     for app_name, config in apps_config.items():
         path = config.get('path')
         if not path:
-            logging.info(f"Skipping {app_name}: path undefined after variable substitution.")
+            logger.info(f"Skipping {app_name}: path undefined after variable substitution.")
             continue
-        logging.info(f"Configuring {app_name}...")
+        logger.info(f"Configuring {app_name}...")
         modify_file(path, config['replacements'])
 
 def run(config: dict):

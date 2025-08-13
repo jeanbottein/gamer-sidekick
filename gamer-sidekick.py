@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from typing import Dict
+import logging
 
-from lib import steamos_games_manifester as sgm
+from lib import manifester 
 from lib import patcher
-from lib import config_apps
+from lib import configurer
 
+logger = logging.getLogger(__name__)
 
 def load_config_map(config_path: Path) -> Dict[str, str]:
     """Parse KEY=VALUE lines into a dict. Ignores comments and blanks."""
@@ -27,13 +29,18 @@ def load_config_map(config_path: Path) -> Dict[str, str]:
 
 
 def main():
+    # Centralized logging configuration
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    )
     script_dir = Path(__file__).resolve().parent
     cfg = load_config_map(script_dir / 'config.txt')
 
     # Execute steps with shared config map
-    sgm.run(cfg)
+    manifester.run(cfg)
     patcher.run(cfg)
-    config_apps.run(cfg)
+    configurer.run(cfg)
 
 
 if __name__ == "__main__":

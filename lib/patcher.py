@@ -4,7 +4,10 @@ import shutil
 import subprocess
 import glob
 import zlib
+import logging
 from pathlib import Path
+ 
+logger = logging.getLogger("patcher")
 
 GAMES_FOLDERS = ["/home/deck/.steam/steam/steamapps/common", "/run/media/deck/*/steamapps/common"]
 PATCHES_FOLDER = 'patches'
@@ -30,7 +33,7 @@ def create_backup(target_file, backup_file):
 
 def replace_file(source_file, target_file):
     shutil.copy2(source_file, target_file)
-    print(f"Replaced {target_file} with {source_file}")
+    logger.info(f"Replaced {target_file} with {source_file}")
 
 def apply_bps_patch(patch_file, target_file):
     # Resolve flips binary from repo root: <repo>/bin/flips
@@ -40,24 +43,24 @@ def apply_bps_patch(patch_file, target_file):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     if result.returncode == 0:
         os.replace(f"{target_file}.patched", target_file)
-        print(f"Successfully patched {target_file}")
+        logger.info(f"Successfully patched {target_file}")
         return True
-    print(f"Error patching {target_file}: {result.stderr}")
+    logger.error(f"Error patching {target_file}: {result.stderr}")
     return False
 
 def check_crc32(file_path, expected_crc32):
     if expected_crc32 is None:
         return True
     actual_crc32 = calculate_crc32(file_path)
-    print(f"CRC before patching: {actual_crc32:08X}")
+    logger.info(f"CRC before patching: {actual_crc32:08X}")
     if actual_crc32 != int(expected_crc32, 16):
-        print(f"CRC mismatch. Expected: {expected_crc32}, Got: {actual_crc32:08X}")
+        logger.warning(f"CRC mismatch. Expected: {expected_crc32}, Got: {actual_crc32:08X}")
         return False
     return True
 
 def patch_file(patch_info, source_file, target_file, backup_file):
     if not create_backup(target_file, backup_file):
-        print(f"Backup file exists for {target_file}. Skipping patch.")
+        logger.info(f"Backup file exists for {target_file}. Skipping patch.")
         return
 
     if patch_info['method'] == 'replace':
@@ -67,19 +70,19 @@ def patch_file(patch_info, source_file, target_file, backup_file):
             os.remove(backup_file)
             return
 
-    print(f"CRC after patching: {calculate_crc32(target_file):08X}")
+    logger.info(f"CRC after patching: {calculate_crc32(target_file):08X}")
 
 def apply_patch(patch_info, games_folder, patch_folder):
     source_file, target_file, backup_file = get_file_paths(patch_info, games_folder, patch_folder)
 
     if not os.path.exists(source_file):
-        print(f"Error: {source_file} does not exist")
+        logger.error(f"Error: {source_file} does not exist")
         return
 
     if not os.path.exists(target_file):
         return
 
-    print(f"Found {target_file}")
+    logger.info(f"Found {target_file}")
 
     if not check_crc32(target_file, patch_info.get('target_crc32')):
         return

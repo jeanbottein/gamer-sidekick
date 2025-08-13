@@ -2,6 +2,9 @@ import os
 import json
 import subprocess
 import difflib
+import logging
+
+logger = logging.getLogger("manifester")
 
 relative_path = True
 
@@ -79,9 +82,9 @@ def write_manifest(manifest_path, manifest):
     try:
         with open(manifest_path, 'w') as f:
             json.dump(manifest, f, indent=4)
-        print(f"manifest.json created/updated successfully in {os.path.dirname(manifest_path)}")
+        logger.info(f"manifest.json created/updated successfully in {os.path.dirname(manifest_path)}")
     except Exception as e:
-        print(f"Error creating/updating manifest.json in {os.path.dirname(manifest_path)}: {str(e)}")
+        logger.error(f"Error creating/updating manifest.json in {os.path.dirname(manifest_path)}: {str(e)}")
 
 
 def createManifest(game_dir):
@@ -90,9 +93,9 @@ def createManifest(game_dir):
         return
     target = get_target(game_dir)
     if target is None:
-        print(f"No target found in {game_dir}")
+        logger.info(f"no target found in {game_dir}")
         return None
-    print(f"Manifesting {target}")
+    logger.info(f"manifesting {target}")
     manifest = {
         "title": get_title(game_dir),
         "target": format_path(target,game_dir),
@@ -125,18 +128,17 @@ def create_main_manifest(games_dir):
     main_manifest = []
     manifests = find_manifests(games_dir)
 
-    print("games in the manifest:")
     for manifest_path in manifests:
         manifest = load_and_ajust_manifest(manifest_path)
         main_manifest.append(manifest)
-        print(f"- {manifest['title']}")
+        logger.info(f"Found {manifest['title']} ")
 
     # Write the main manifest to a JSON file
     main_manifest_path = os.path.join(games_dir, manifests_filename)
     with open(main_manifest_path, 'w') as f:
         json.dump(main_manifest, f, indent=4)
 
-    print(f"Manifests file created at: {main_manifest_path}")
+    logger.info(f"Manifests file created at: {main_manifest_path}")
 
 def run(config: dict):
     """Primary entrypoint: expects a config dict.
@@ -152,7 +154,7 @@ def run(config: dict):
         games_dir = os.path.join(repo_root, 'games')
 
     if not os.path.isdir(games_dir):
-        print(f"{games_dir} is not a valid directory.")
+        logger.warning(f"{games_dir} is not a valid directory.")
         return
 
     for item in os.listdir(games_dir):
