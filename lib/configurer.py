@@ -416,13 +416,24 @@ def run(config_vars: dict):
                 continue
                 
             for p in paths:
-                # Apply replacements based on type
+                # Separate replacements by type
+                text_replacements = []
+                hex_replacements = []
+                
                 if file_config.get('replacements'):
                     for replacement in file_config['replacements']:
                         if replacement.get('type') == 'hexadecimal':
-                            modify_hex_file_with_ascii(p, [replacement])
+                            hex_replacements.append(replacement)
                         else:
-                            modify_file(p, [replacement])
+                            text_replacements.append(replacement)
+                
+                # Apply all text replacements in one call
+                if text_replacements:
+                    modify_file(p, text_replacements)
+                
+                # Apply all hex replacements in one call
+                if hex_replacements:
+                    modify_hex_file_with_ascii(p, hex_replacements)
                 
                 # Apply hex replacements if they exist (legacy support)
                 if file_config.get('hex_replacements'):
