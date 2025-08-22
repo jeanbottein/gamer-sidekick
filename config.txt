@@ -1,21 +1,21 @@
 # Paths
-FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
-PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
+#FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
+#PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
 
 # Dolphin settings
-DOLPHIN_GC_LANGUAGE=2   # 0=eng, 1=ger, 2=fre, 3=spa
-DOLPHIN_WII_LANGUAGE=3 # 0=jap, 1=eng, 2=ger, 3=fre
-DOLPHIN_GC_SKIP_BOOT=False
+#DOLPHIN_GC_LANGUAGE=2   # 0=eng, 1=ger, 2=fre, 3=spa
+#DOLPHIN_WII_LANGUAGE=3 # 0=jap, 1=eng, 2=ger, 3=fre
+#DOLPHIN_GC_SKIP_BOOT=False
 
 # RyuJinx settings
-RYUJINX_LANGUAGE_CODE=fr_FR
-RYUJINX_SYSTEM_LANGUAGE=French
-RYUJINX_SYSTEM_REGION=Europe
+#RYUJINX_LANGUAGE_CODE=fr_FR
+#RYUJINX_SYSTEM_LANGUAGE=French
+#RYUJINX_SYSTEM_REGION=Europe
 
 # Cemu settings (1=eng, 2=fre)
-CEMU_CONSOLE_LANGUAGE=2
+#CEMU_CONSOLE_LANGUAGE=2
 
 # RetroArch settings (1=eng, 2=fre)
-RETROARCH_USER_LANGUAGE=2
-RETROARCH_VIDEO_DRIVER=glcore
-RETROARCH_NETPLAY_NICKNAME=Jean
+#RETROARCH_USER_LANGUAGE=2
+#RETROARCH_VIDEO_DRIVER=glcore
+#RETROARCH_NETPLAY_NICKNAME=Jean

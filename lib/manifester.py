@@ -139,12 +139,10 @@ def create_main_manifest(games_dir):
     logger.info(f"✅ Manifests file created at: {main_manifest_path}")
 
 def run(config: dict):
-    games_dir = config.get('FREEGAMES_PATH') or os.path.join(
-        os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), 'games'
-    )
+    games_dir = config.get('FREEGAMES_PATH')
 
-    if not os.path.isdir(games_dir):
-        logger.warning(f"❌ {games_dir} is not a valid directory")
+    if not games_dir or not os.path.isdir(games_dir):
+        logger.warning("🤖 FREEGAMES_PATH not configured or invalid")
         return
 
     logger.info(f"🤖 looking for games in {games_dir}")

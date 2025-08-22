@@ -25,11 +25,18 @@ def resolve_variables(text, config_vars=None):
     if not isinstance(text, str):
         return text
     
-    def replacer(match):
+    # Find all unresolved variables
+    unresolved_vars = []
+    def check_replacer(match):
         var = match.group(1)
-        return (config_vars or {}).get(var) or os.getenv(var) or match.group(0)
+        value = (config_vars or {}).get(var) or os.getenv(var)
+        if value is None:
+            unresolved_vars.append(var)
+            return match.group(0)  # Keep original placeholder
+        return value
     
-    return re.sub(r'\$\{(\w+)\}', replacer, text)
+    result = re.sub(r'\$\{(\w+)\}', check_replacer, text)
+    return (None, unresolved_vars) if unresolved_vars else (result, [])
 
 def load_apps_config(config_vars):
     """Load and process configuration from JSON file"""
@@ -39,6 +46,7 @@ def load_apps_config(config_vars):
 
     processed = {}
     for app, config in apps_config.items():
+        logger.info(f"🔧 Configuring {app}...")
         files = []
         for file_config in config.get('files', []):
             # Resolve paths
@@ -48,8 +56,8 @@ def load_apps_config(config_vars):
             
             resolved_paths = []
             for path in raw_paths:
-                resolved = resolve_variables(path, config_vars)
-                if resolved != path:  # Only add if variables were resolved
+                resolved, unresolved_vars = resolve_variables(path, config_vars)
+                if resolved is not None:  # Only add if variables were resolved
                     resolved_paths.append(resolved)
             
             if not resolved_paths:
@@ -59,11 +67,20 @@ def load_apps_config(config_vars):
             replacements = []
             for rep in file_config.get('replacements', []):
                 if isinstance(rep, dict):
+                    resolved_pattern, pattern_unresolved = resolve_variables(rep.get('pattern', ''), config_vars)
+                    resolved_value, value_unresolved = resolve_variables(rep.get('value', ''), config_vars)
+                    
+                    # Skip replacement if any variables are unresolved
+                    all_unresolved = pattern_unresolved + value_unresolved
+                    if resolved_pattern is None or resolved_value is None:
+                        logger.info(f"⚠️  Skipping {rep.get('name', 'unnamed')} - undefined variables: {', '.join(all_unresolved)}")
+                        continue
+                    
                     processed_rep = {
                         'name': rep.get('name', 'unnamed'),
                         'type': rep.get('type', 'text'),
-                        'pattern': resolve_variables(rep.get('pattern', ''), config_vars),
-                        'value': resolve_variables(rep.get('value', ''), config_vars)
+                        'pattern': resolved_pattern,
+                        'value': resolved_value
                     }
                     replacements.append(processed_rep)
             
@@ -172,8 +189,6 @@ def run(config_vars):
     apps_config = load_apps_config(config_vars)
     
     for app_name, config in apps_config.items():
-        logger.info(f"🤖 Configuring {app_name}...")
-        
         for file_config in config.get('files', []):
             paths = file_config.get('paths', [])
             replacements = file_config.get('replacements', [])

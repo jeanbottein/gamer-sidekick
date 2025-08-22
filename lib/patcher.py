@@ -116,7 +116,7 @@ def process_single_patch(patch_info, patch_folder):
 def run(config: dict):
     patches_dir = config.get('PATCHES_PATH')
     if not patches_dir or not os.path.isdir(patches_dir):
-        logger.warning("❌ PATCHES_PATH not configured or invalid")
+        logger.warning("🤖 PATCHES_PATH not configured or invalid")
         return
 
     logger.info(f"🤖 Looking for patches in {patches_dir}")
