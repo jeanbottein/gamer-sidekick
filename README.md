@@ -209,7 +209,10 @@ gamer-sidekick/
 
 - Python 3.6+
 - Standard Linux utilities (find, file, etc.)
-- For patching: BPS patch support
+- For patching: **flips** command-line tool for BPS patch support
+  - Download from: https://github.com/Alcaro/Flips/releases
+  - Place the `flips` binary in `bin/flips` relative to the project root
+  - Or ensure `flips` is available in your system PATH
 
 ## Steam ROM Manager Integration
 

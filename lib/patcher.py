@@ -16,6 +16,23 @@ GAMES_FOLDERS = [
 
 FLIPS_PATH = Path(__file__).resolve().parent.parent / 'bin' / 'flips'
 
+def check_flips_availability():
+    """Check if flips command is available"""
+    # First try local bin/flips
+    if FLIPS_PATH.exists() and os.access(FLIPS_PATH, os.X_OK):
+        return str(FLIPS_PATH)
+    
+    # Then try system PATH
+    try:
+        result = subprocess.run(['which', 'flips'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return 'flips'
+    except FileNotFoundError:
+        pass
+    
+    return None
+
+
 def calculate_crc32(filename):
     with open(filename, 'rb') as file:
         return zlib.crc32(file.read()) & 0xFFFFFFFF
@@ -46,19 +63,28 @@ def apply_replacement(source_file, target_file):
         if target_crc32 != backup_crc32:
             source_crc32 = calculate_crc32(source_file)
             if target_crc32 == source_crc32:
-                logger.info(f"✅ {os.path.basename(target_file)} already replaced")
+                logger.info(f"✅ {target_file} already replaced")
                 return
             else:
-                logger.error(f"❌ {os.path.basename(target_file)} backup exists but target file differ from patch")
+                logger.error(f"❌ {target_file} backup exists but target file differ from patch")
                 return
     else:
         shutil.copy2(target_file, backup_file)
     
     shutil.copy2(source_file, target_file)
-    logger.info(f"✅ {os.path.basename(target_file)} replaced")
+    logger.info(f"✅ {target_file} replaced")
 
-def patch_file_with_backup_check(patch_info, source_file, target_file):
+def patch_file_with_backup_check(patch_info, source_file, target_file, flips_cmd):
     backup_file = f"{target_file}.backup"
+    
+    # Check CRC32 before attempting to patch
+    target_crc32_expected = patch_info.get('target_crc32')
+    if target_crc32_expected:
+        actual_crc32 = calculate_crc32(target_file)
+        expected_crc32 = int(target_crc32_expected, 16)
+        if actual_crc32 != expected_crc32:
+            logger.error(f"❌ CRC32 mismatch for {target_file}. Expected: {target_crc32_expected}, Got: {actual_crc32:08X}")
+            return
     
     if os.path.exists(backup_file):
         target_crc32 = calculate_crc32(target_file)
@@ -67,34 +93,33 @@ def patch_file_with_backup_check(patch_info, source_file, target_file):
         if target_crc32 != backup_crc32:
             patched_crc32 = patch_info.get('patched_crc32')
             if patched_crc32 and target_crc32 == int(patched_crc32, 16):
-                logger.info(f"✅ {os.path.basename(target_file)} already patched")
+                logger.info(f"✅ {target_file} already patched")
                 return
             else:
-                logger.error(f"❌ {os.path.basename(target_file)} backup exists but target file differ from patch")
+                logger.error(f"❌ {target_file} backup exists but target file differ from patch")
                 return
     else:
         shutil.copy2(target_file, backup_file)
     
-    cmd = f"'{FLIPS_PATH}' -a '{source_file}' '{target_file}' '{target_file}.patched'"
+    cmd = f"'{flips_cmd}' -a '{source_file}' '{target_file}' '{target_file}.patched'"
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if result.returncode == 0:
         os.replace(f"{target_file}.patched", target_file)
-        logger.info(f"✅ {os.path.basename(target_file)} patched")
+        logger.info(f"✅ {target_file} patched")
     else:
-        logger.error(f"❌ Error patching {os.path.basename(target_file)}: {result.stderr}")
+        logger.error(f"❌ Error patching {target_file}: {result.stderr}")
 
-def apply_patch_to_file(patch_info, source_file, target_file):
+def apply_patch_to_file(patch_info, source_file, target_file, flips_cmd):
     if patch_info['method'] == 'replace':
         apply_replacement(source_file, target_file)
     elif patch_info['method'] == 'patch':
-        apply_patch(source_file, target_file)
+        patch_file_with_backup_check(patch_info, source_file, target_file, flips_cmd)
 
 
-def process_single_patch(patch_info, patch_folder):
+def process_single_patch(patch_info, patch_folder, flips_cmd):
     source_file = os.path.join(patch_folder, patch_info['file'])
-    
     if not os.path.exists(source_file):
-        logger.error(f"❌ {os.path.basename(source_file)} does not exist")
+        logger.error(f"❌ {source_file} does not exist")
         return
     
     for games_folder in get_game_dirs():
@@ -105,9 +130,9 @@ def process_single_patch(patch_info, patch_folder):
         status = check_file_status(target_file, patch_info.get('target_crc32'), patch_info.get('patched_crc32'))
         
         if status == "already_patched":
-            logger.info(f"✅ {os.path.basename(target_file)} already patched")
+            logger.info(f"✅ {target_file} already patched")
         elif status == "ready":
-            apply_patch_to_file(patch_info, source_file, target_file)
+            apply_patch_to_file(patch_info, source_file, target_file, flips_cmd)
         
         return
     
@@ -117,6 +142,14 @@ def run(config: dict):
     patches_dir = config.get('PATCHES_PATH')
     if not patches_dir or not os.path.isdir(patches_dir):
         logger.warning("🤖 PATCHES_PATH not configured or invalid")
+        return
+
+    # Check flips availability once at startup
+    flips_cmd = check_flips_availability()
+    if not flips_cmd:
+        logger.warning("🤖 flips command not found - skipping patcher phase")
+        logger.info("ℹ️  Install flips from https://github.com/Alcaro/Flips/releases")
+        logger.info("ℹ️  Place in bin/flips or ensure it's in your system PATH")
         return
 
     logger.info(f"🤖 Looking for patches in {patches_dir}")
@@ -135,7 +168,7 @@ def run(config: dict):
         
         patch_folder = os.path.dirname(json_file)
         for patch in patches:
-            process_single_patch(patch, patch_folder)
+            process_single_patch(patch, patch_folder, flips_cmd)
         
         patch_count += 1
     
