@@ -5,7 +5,7 @@ PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
 
 # Dolphin settings
 DOLPHIN_GC_LANGUAGE=2   # 0=eng, 1=ger, 2=fre, 3=spa
-DOLPHIN_WII_LANGUAGE=03 # 00=jap, 01=eng, 02=ger, 03=fre
+DOLPHIN_WII_LANGUAGE=3 # 0=jap, 1=eng, 2=ger, 3=fre
 RYUJINX_LANGUAGE_CODE=fr_FR
 RYUJINX_SYSTEM_LANGUAGE=French
 RYUJINX_SYSTEM_REGION=Europe

@@ -1,83 +1,103 @@
 {
     "Ryujinx": {
-        "paths": [ 
-            "${HOME}/.config/Ryujinx/Config.json",
-            "${HOME}/.var/app/net.retrodeck.retrodeck/config/Ryujinx/Config.json"
-        ],
-        "replacements": [
+        "files": [
             {
-                "name": "language code",
-                "pattern": "\"language_code\":.*,",
-                "value": "\"language_code\": \"${RYUJINX_LANGUAGE_CODE}\","
-            },
-            {
-                "name": "system language",
-                "pattern": "\"system_language\":.*,",
-                "value": "\"system_language\": \"${RYUJINX_SYSTEM_LANGUAGE}\","
-            },
-            {
-                "name": "system region",
-                "pattern": "\"system_region\":.*,",
-                "value": "\"system_region\": \"${RYUJINX_SYSTEM_REGION}\","
+                "paths": [ 
+                    "${HOME}/.config/Ryujinx/Config.json",
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/Ryujinx/Config.json"
+                ],
+                "replacements": [
+                    {
+                        "name": "language code",
+                        "pattern": "\"language_code\":.*,",
+                        "value": "\"language_code\": \"${RYUJINX_LANGUAGE_CODE}\","
+                    },
+                    {
+                        "name": "system language",
+                        "pattern": "\"system_language\":.*,",
+                        "value": "\"system_language\": \"${RYUJINX_SYSTEM_LANGUAGE}\","
+                    },
+                    {
+                        "name": "system region",
+                        "pattern": "\"system_region\":.*,",
+                        "value": "\"system_region\": \"${RYUJINX_SYSTEM_REGION}\","
+                    }
+                ]
             }
         ]
     },
     "Cemu": {
-        "paths": [
-        "${HOME}/.config/Cemu/settings.xml",
-        "${HOME}/.var/app/net.retrodeck.retrodeck/config/Cemu/settings.xml"],
-        "replacements": [
+        "files": [
             {
-                "name": "console language",
-                "pattern": "<console_language>.*</console_language>",
-                "value": "<console_language>${CEMU_CONSOLE_LANGUAGE}</console_language>"
+                "paths": [
+                    "${HOME}/.config/Cemu/settings.xml",
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/Cemu/settings.xml"
+                ],
+                "replacements": [
+                    {
+                        "name": "console language",
+                        "pattern": "<console_language>.*</console_language>",
+                        "value": "<console_language>${CEMU_CONSOLE_LANGUAGE}</console_language>"
+                    }
+                ]
             }
         ]
     },
     "RetroArch": {
-        "paths": [
-            "${HOME}/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg",
-            "${HOME}/.var/app/net.retrodeck.retrodeck/config/retroarch/retroarch.cfg"
-        ],
-        "replacements": [
+        "files": [
             {
-                "name": "user language",
-                "pattern": "user_language =.*",
-                "value": "user_language = \"${RETROARCH_USER_LANGUAGE}\""
-            },
-            {
-                "name": "video driver",
-                "pattern": "video_driver =.*",
-                "value": "video_driver = \"${RETROARCH_VIDEO_DRIVER}\""
-            },
-            {
-                "name": "netplay nickname",
-                "pattern": "netplay_nickname =.*",
-                "value": "netplay_nickname = \"${RETROARCH_NETPLAY_NICKNAME}\""
+                "paths": [
+                    "${HOME}/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg",
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/retroarch/retroarch.cfg"
+                ],
+                "replacements": [
+                    {
+                        "name": "user language",
+                        "pattern": "user_language =.*",
+                        "value": "user_language = \"${RETROARCH_USER_LANGUAGE}\""
+                    },
+                    {
+                        "name": "video driver",
+                        "pattern": "video_driver =.*",
+                        "value": "video_driver = \"${RETROARCH_VIDEO_DRIVER}\""
+                    },
+                    {
+                        "name": "netplay nickname",
+                        "pattern": "netplay_nickname =.*",
+                        "value": "netplay_nickname = \"${RETROARCH_NETPLAY_NICKNAME}\""
+                    }
+                ]
             }
         ]
     },
     "Dolphin": {
-        "paths": [
-            "${HOME}/.var/app/net.retrodeck.retrodeck/config/dolphin-emu/Dolphin.ini"
-        ],
-        "replacements": [
+        "files": [
             {
-                "name": "GameCube language",
-                "pattern": "SelectedLanguage =.*",
-                "value": "SelectedLanguage = ${DOLPHIN_GC_LANGUAGE}"
-            }
-        ]
-    },
-    "DolphinSYSCONF": {
-        "paths": [
-            "${HOME}/.var/app/net.retrodeck.retrodeck/data/dolphin-emu/Wii/shared2/sys/SYSCONF"
-        ],
-        "hex_replacements": [
+                "paths": [
+                    "${HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/Dolphin.ini",
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/dolphin-emu/Dolphin.ini"
+                ],
+                "replacements": [
+                    {
+                        "name": "GameCube language",
+                        "pattern": "SelectedLanguage =.*",
+                        "value": "SelectedLanguage = ${DOLPHIN_GC_LANGUAGE}"
+                    }
+                ]
+            },
             {
-                "name": "Wii language",
-                "hex_pattern": "49 50 4c 2e 4c 4e 47 ??",
-                "hex_value": "${DOLPHIN_WII_LANGUAGE}"
+                "paths": [
+                    "${HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/Wii/shared2/sys/SYSCONF",
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/data/dolphin-emu/Wii/shared2/sys/SYSCONF"
+                ],
+                "replacements": [
+                    {
+                        "name": "Wii language",
+                        "type": "hexadecimal",
+                        "pattern": "IPL.LNG?",
+                        "value": "IPL.LNG${DOLPHIN_WII_LANGUAGE}"
+                    }
+                ]
             }
         ]
     }
