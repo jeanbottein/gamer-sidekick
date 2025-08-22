@@ -1,0 +1,60 @@
+{
+    "Ryujinx": {
+        "paths": [ 
+            "${HOME}/.config/Ryujinx/Config.json",
+            "${HOME}/.var/app/net.retrodeck.retrodeck/config/Ryujinx/Config.json"
+        ],
+        "replacements": [
+            {
+                "name": "language code",
+                "pattern": "\"language_code\":.*,",
+                "value": "\"language_code\": \"${RYUJINX_LANGUAGE_CODE}\","
+            },
+            {
+                "name": "system language",
+                "pattern": "\"system_language\":.*,",
+                "value": "\"system_language\": \"${RYUJINX_SYSTEM_LANGUAGE}\","
+            },
+            {
+                "name": "system region",
+                "pattern": "\"system_region\":.*,",
+                "value": "\"system_region\": \"${RYUJINX_SYSTEM_REGION}\","
+            }
+        ]
+    },
+    "Cemu": {
+        "paths": [
+        "${HOME}/.config/Cemu/settings.xml",
+        "${HOME}/.var/app/net.retrodeck.retrodeck/config/Cemu/settings.xml"],
+        "replacements": [
+            {
+                "name": "console language",
+                "pattern": "<console_language>.*</console_language>",
+                "value": "<console_language>${CEMU_CONSOLE_LANGUAGE}</console_language>"
+            }
+        ]
+    },
+    "RetroArch": {
+        "paths": [
+            "${HOME}/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg",
+            "${HOME}/.var/app/net.retrodeck.retrodeck/config/retroarch/retroarch.cfg"
+        ],
+        "replacements": [
+            {
+                "name": "user language",
+                "pattern": "user_language =.*",
+                "value": "user_language = \"${RETROARCH_USER_LANGUAGE}\""
+            },
+            {
+                "name": "video driver",
+                "pattern": "video_driver =.*",
+                "value": "video_driver = \"${RETROARCH_VIDEO_DRIVER}\""
+            },
+            {
+                "name": "netplay nickname",
+                "pattern": "netplay_nickname =.*",
+                "value": "netplay_nickname = \"${RETROARCH_NETPLAY_NICKNAME}\""
+            }
+        ]
+    }
+}

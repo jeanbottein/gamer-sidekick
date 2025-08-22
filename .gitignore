@@ -1,0 +1,7 @@
+/bin
+/games
+/mods
+/patches
+**/__pycache__
+__pycache__/
+*.py[cod]

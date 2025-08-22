@@ -1,0 +1,40 @@
+{
+    "symlinks": [
+        {
+            "src": "{HOME}/.local/share/lime3ds-emu/load/textures",
+            "tgt": "{HOME}/.local/share/citra-emu/load/textures"
+        },
+        {
+            "src": "{HOME}/.local/share/lime3ds-emu/load/mods",
+            "tgt": "{HOME}/.local/share/citra-emu/load/mods"
+        },
+        {
+            "src": "{HOME}/.local/share/lime3ds-emu/load/textures",
+            "tgt": "{TEXTUREPACKS_PATH}/lime3ds/textures"
+        },
+        {
+            "src": "{HOME}/.local/share/lime3ds-emu/load/mods",
+            "tgt": "{TEXTUREPACKS_PATH}/lime3ds/mods"
+        },
+        {
+            "src": "{HOME}/.local/share/citra-emu/load/textures",
+            "tgt": "{TEXTUREPACKS_PATH}/citra/textures"
+        },
+        {
+            "src": "{HOME}/.local/share/citra-emu/load/mods",
+            "tgt": "{TEXTUREPACKS_PATH}/citra/mods"
+        },
+        {
+            "src": "{HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/Load/Textures",
+            "tgt": "{TEXTUREPACKS_PATH}/dolphin/Textures"
+        },
+        {
+            "src": "{HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/Load/GraphicMods",
+            "tgt": "{TEXTUREPACKS_PATH}/dolphin/GraphicMods"
+        },
+        {
+            "src": "{HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/ResourcePacks",
+            "tgt": "{TEXTUREPACKS_PATH}/dolphin/ResourcePacks"
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+# Paths
+EMUDECK_PATH=/run/media/deck/SteamDeck-SD/Emulation
+FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
+PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
+
+# Ryujinx settings
+RYUJINX_LANGUAGE_CODE=fr_FR
+RYUJINX_SYSTEM_LANGUAGE=French
+RYUJINX_SYSTEM_REGION=Europe
+
+# Cemu settings (1=eng, 2=fre)
+CEMU_CONSOLE_LANGUAGE=2
+
+# RetroArch settings (1=eng, 2=fre)
+RETROARCH_USER_LANGUAGE=2
+RETROARCH_VIDEO_DRIVER=glcore
+RETROARCH_NETPLAY_NICKNAME=Jean
