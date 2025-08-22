@@ -8,17 +8,17 @@
                 ],
                 "replacements": [
                     {
-                        "name": "language code",
+                        "name": "Ryujinx / language code",
                         "pattern": "\"language_code\":.*,",
                         "value": "\"language_code\": \"${RYUJINX_LANGUAGE_CODE}\","
                     },
                     {
-                        "name": "system language",
+                        "name": "Ryujinx / system language",
                         "pattern": "\"system_language\":.*,",
                         "value": "\"system_language\": \"${RYUJINX_SYSTEM_LANGUAGE}\","
                     },
                     {
-                        "name": "system region",
+                        "name": "Ryujinx / system region",
                         "pattern": "\"system_region\":.*,",
                         "value": "\"system_region\": \"${RYUJINX_SYSTEM_REGION}\","
                     }
@@ -35,7 +35,7 @@
                 ],
                 "replacements": [
                     {
-                        "name": "console language",
+                        "name": "Cemu / console language",
                         "pattern": "<console_language>.*</console_language>",
                         "value": "<console_language>${CEMU_CONSOLE_LANGUAGE}</console_language>"
                     }
@@ -52,17 +52,17 @@
                 ],
                 "replacements": [
                     {
-                        "name": "user language",
+                        "name": "RetroArch / user language",
                         "pattern": "user_language =.*",
                         "value": "user_language = \"${RETROARCH_USER_LANGUAGE}\""
                     },
                     {
-                        "name": "video driver",
+                        "name": "RetroArch / video driver",
                         "pattern": "video_driver =.*",
                         "value": "video_driver = \"${RETROARCH_VIDEO_DRIVER}\""
                     },
                     {
-                        "name": "netplay nickname",
+                        "name": "RetroArch / netplay nickname",
                         "pattern": "netplay_nickname =.*",
                         "value": "netplay_nickname = \"${RETROARCH_NETPLAY_NICKNAME}\""
                     }
@@ -79,12 +79,12 @@
                 ],
                 "replacements": [
                     {
-                        "name": "GameCube language",
+                        "name": "Dolphin / GameCube language",
                         "pattern": "SelectedLanguage =.*",
                         "value": "SelectedLanguage = ${DOLPHIN_GC_LANGUAGE}"
                     },
                     {
-                        "name": "Skip GameCube boot sequence",
+                        "name": "Dolphin / Skip GameCube boot sequence",
                         "pattern": "SkipIPL = *",
                         "value": "SkipIPL = ${DOLPHIN_GC_SKIP_BOOT}"
                     }
@@ -97,7 +97,7 @@
                 ],
                 "replacements": [
                     {
-                        "name": "Wii language",
+                        "name": "Dolphin / Wii language",
                         "type": "hexadecimal",
                         "pattern": "IPL.LNG?",
                         "value": "IPL.LNG${DOLPHIN_WII_LANGUAGE}"

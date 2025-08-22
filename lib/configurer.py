@@ -46,7 +46,7 @@ def load_apps_config(config_vars):
 
     processed = {}
     for app, config in apps_config.items():
-        logger.info(f"🔧 Configuring {app}...")
+        logger.debug(f"Loading {app} configuration...")
         files = []
         for file_config in config.get('files', []):
             # Resolve paths
@@ -150,19 +150,20 @@ def apply_hex_replacements(content, replacements):
 def modify_file(file_path, replacements):
     """Modify a single file with given replacements"""
     if not os.path.exists(file_path):
-        logger.info(f"ℹ️  {file_path} does not exist")
+        #logger.info(f"ℹ️  {file_path} does not exist")
         return
     
     if not replacements:
         return
     
+    # logger.info(f"✅ {file_path} exists")
+
     # Separate by type
     text_reps = [r for r in replacements if r.get('type') != 'hexadecimal']
     hex_reps = [r for r in replacements if r.get('type') == 'hexadecimal']
     
     # Handle text files
     if text_reps:
-        logger.info(f"✅ {file_path} detected")
         with open(file_path, 'r') as f:
             content = f.read()
         
@@ -174,7 +175,6 @@ def modify_file(file_path, replacements):
     
     # Handle binary files
     if hex_reps:
-        logger.info(f"✅ {file_path} detected (binary)")
         with open(file_path, 'rb') as f:
             content = f.read()
         
@@ -188,6 +188,7 @@ def run(config_vars):
     """Main configuration runner"""
     apps_config = load_apps_config(config_vars)
     
+    logger.info("🤖 Configuring apps...")
     for app_name, config in apps_config.items():
         for file_config in config.get('files', []):
             paths = file_config.get('paths', [])
