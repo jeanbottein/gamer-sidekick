@@ -82,6 +82,11 @@
                         "name": "GameCube language",
                         "pattern": "SelectedLanguage =.*",
                         "value": "SelectedLanguage = ${DOLPHIN_GC_LANGUAGE}"
+                    },
+                    {
+                        "name": "Skip GameCube boot sequence",
+                        "pattern": "SkipIPL = *",
+                        "value": "SkipIPL = ${DOLPHIN_GC_SKIP_BOOT}"
                     }
                 ]
             },
