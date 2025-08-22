@@ -6,7 +6,7 @@ import glob
 import zlib
 import logging
 from pathlib import Path
- 
+
 logger = logging.getLogger("patcher")
 
 GAMES_FOLDERS = [
@@ -14,103 +14,130 @@ GAMES_FOLDERS = [
     "/run/media/deck/*/steamapps/common",
 ]
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-FLIPS_PATH = REPO_ROOT / 'bin' / 'flips'
+FLIPS_PATH = Path(__file__).resolve().parent.parent / 'bin' / 'flips'
 
 def calculate_crc32(filename):
     with open(filename, 'rb') as file:
         return zlib.crc32(file.read()) & 0xFFFFFFFF
 
-def flatten_game_folders(folders):
-    paths = (glob.glob(f) if '*' in f else [f] for f in folders)
-    flat = (p for group in paths for p in group)
-    return list({p for p in flat if os.path.exists(p)})
+def get_game_dirs():
+    paths = (glob.glob(f) if '*' in f else [f] for f in GAMES_FOLDERS)
+    return [p for group in paths for p in group if os.path.exists(p)]
 
-def get_file_paths(patch_info, games_folder, patch_folder):
-    source_file = os.path.join(patch_folder, patch_info['file'])
-    target_file = os.path.join(games_folder, patch_info['target'])
+def check_file_status(file_path, target_crc32, patched_crc32):
+    actual_crc32 = calculate_crc32(file_path)
+    
+    if patched_crc32 and actual_crc32 == int(patched_crc32, 16):
+        return "already_patched"
+    
+    if not target_crc32 or actual_crc32 == int(target_crc32, 16):
+        return "ready"
+    
+    logger.warning(f"❌ CRC mismatch. Expected: {target_crc32}, Got: {actual_crc32:08X}")
+    return "mismatch"
+
+def apply_replacement(source_file, target_file):
     backup_file = f"{target_file}.backup"
-    return source_file, target_file, backup_file
-
-def create_backup(target_file, backup_file):
-    if not os.path.exists(backup_file):
+    
+    if os.path.exists(backup_file):
+        target_crc32 = calculate_crc32(target_file)
+        backup_crc32 = calculate_crc32(backup_file)
+        
+        if target_crc32 != backup_crc32:
+            source_crc32 = calculate_crc32(source_file)
+            if target_crc32 == source_crc32:
+                logger.info(f"✅ {os.path.basename(target_file)} already replaced")
+                return
+            else:
+                logger.error(f"❌ {os.path.basename(target_file)} backup exists but target file differ from patch")
+                return
+    else:
         shutil.copy2(target_file, backup_file)
-        return True
-    return False
-
-def replace_file(source_file, target_file):
+    
     shutil.copy2(source_file, target_file)
     logger.info(f"✅ {os.path.basename(target_file)} replaced")
 
-def apply_bps_patch(patch_file, target_file):
-    command = f"'{str(FLIPS_PATH)}' -a '{patch_file}' '{target_file}' '{target_file}.patched'"
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+def patch_file_with_backup_check(patch_info, source_file, target_file):
+    backup_file = f"{target_file}.backup"
+    
+    if os.path.exists(backup_file):
+        target_crc32 = calculate_crc32(target_file)
+        backup_crc32 = calculate_crc32(backup_file)
+        
+        if target_crc32 != backup_crc32:
+            patched_crc32 = patch_info.get('patched_crc32')
+            if patched_crc32 and target_crc32 == int(patched_crc32, 16):
+                logger.info(f"✅ {os.path.basename(target_file)} already patched")
+                return
+            else:
+                logger.error(f"❌ {os.path.basename(target_file)} backup exists but target file differ from patch")
+                return
+    else:
+        shutil.copy2(target_file, backup_file)
+    
+    cmd = f"'{FLIPS_PATH}' -a '{source_file}' '{target_file}' '{target_file}.patched'"
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if result.returncode == 0:
         os.replace(f"{target_file}.patched", target_file)
         logger.info(f"✅ {os.path.basename(target_file)} patched")
-        return True
-    logger.error(f"❌ Error patching {os.path.basename(target_file)}: {result.stderr}")
-    return False
+    else:
+        logger.error(f"❌ Error patching {os.path.basename(target_file)}: {result.stderr}")
 
-def check_crc32(file_path, expected_crc32):
-    if expected_crc32 is None:
-        return True
-    actual_crc32 = calculate_crc32(file_path)
-    logger.info(f"- CRC before patching: {actual_crc32:08X}")
-    if actual_crc32 != int(expected_crc32, 16):
-        logger.warning(f"❌ CRC mismatch. Expected: {expected_crc32}, Got: {actual_crc32:08X}")
-        return False
-    return True
-
-def patch_file(patch_info, source_file, target_file, backup_file):
-    if not create_backup(target_file, backup_file):
-        logger.info(f"- {os.path.basename(target_file)} backup exists, skipping patch")
-        return
-
+def apply_patch_to_file(patch_info, source_file, target_file):
     if patch_info['method'] == 'replace':
-        replace_file(source_file, target_file)
+        apply_replacement(source_file, target_file)
     elif patch_info['method'] == 'patch':
-        if not apply_bps_patch(source_file, target_file):
-            os.remove(backup_file)
-            return
+        apply_patch(source_file, target_file)
 
-    logger.info(f"- CRC after patching: {calculate_crc32(target_file):08X}")
 
-def apply_patch(patch_info, games_folder, patch_folder):
-    source_file, target_file, backup_file = get_file_paths(patch_info, games_folder, patch_folder)
-
+def process_single_patch(patch_info, patch_folder):
+    source_file = os.path.join(patch_folder, patch_info['file'])
+    
     if not os.path.exists(source_file):
         logger.error(f"❌ {os.path.basename(source_file)} does not exist")
         return
-
-    if not os.path.exists(target_file):
+    
+    for games_folder in get_game_dirs():
+        target_file = os.path.join(games_folder, patch_info['target'])
+        if not os.path.exists(target_file):
+            continue
+            
+        status = check_file_status(target_file, patch_info.get('target_crc32'), patch_info.get('patched_crc32'))
+        
+        if status == "already_patched":
+            logger.info(f"✅ {os.path.basename(target_file)} already patched")
+        elif status == "ready":
+            apply_patch_to_file(patch_info, source_file, target_file)
+        
         return
-
-    logger.info(f"✅ {os.path.basename(target_file)} found")
-
-    if not check_crc32(target_file, patch_info.get('target_crc32')):
-        return
-
-    patch_file(patch_info, source_file, target_file, backup_file)
-
-def process_patch_file(json_file):
-    patch_folder = os.path.dirname(json_file)
-    with open(json_file, 'r') as f:
-        patches = json.load(f)
-
-    game_dirs = flatten_game_folders(GAMES_FOLDERS)
-    for patch in patches:
-        for games_folder in game_dirs:
-            apply_patch(patch, games_folder, patch_folder)
-
+    
+    logger.info(f"❌ {patch_info['target']} not found")
 
 def run(config: dict):
     patches_dir = config.get('PATCHES_PATH')
-    if not os.path.isdir(patches_dir):
-        logger.warning(f"❌ {patches_dir} is not a valid directory")
+    if not patches_dir or not os.path.isdir(patches_dir):
+        logger.warning("❌ PATCHES_PATH not configured or invalid")
         return
 
-    for patch_folder in os.listdir(patches_dir):
-        json_file = os.path.join(patches_dir, patch_folder, 'patch.json')
-        if os.path.exists(json_file):
-            process_patch_file(json_file)
+    logger.info(f"🤖 Looking for patches in {patches_dir}")
+    patch_count = 0
+    
+    for root, dirs, files in os.walk(patches_dir):
+        if 'patch.json' not in files:
+            continue
+            
+        json_file = os.path.join(root, 'patch.json')
+        relative_path = os.path.relpath(root, patches_dir)
+        logger.info(f"📦 Processing {relative_path}")
+        
+        with open(json_file, 'r') as f:
+            patches = json.load(f)
+        
+        patch_folder = os.path.dirname(json_file)
+        for patch in patches:
+            process_single_patch(patch, patch_folder)
+        
+        patch_count += 1
+    
+    if patch_count == 0:
+        logger.info("ℹ️  No patch.json files found")
