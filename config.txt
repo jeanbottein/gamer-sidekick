@@ -3,7 +3,9 @@ EMUDECK_PATH=/run/media/deck/SteamDeck-SD/Emulation
 FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
 PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
 
-# Ryujinx settings
+# Dolphin settings
+DOLPHIN_GC_LANGUAGE=2   # 0=eng, 1=ger, 2=fre, 3=spa
+DOLPHIN_WII_LANGUAGE=03 # 00=jap, 01=eng, 02=ger, 03=fre
 RYUJINX_LANGUAGE_CODE=fr_FR
 RYUJINX_SYSTEM_LANGUAGE=French
 RYUJINX_SYSTEM_REGION=Europe

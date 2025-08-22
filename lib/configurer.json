@@ -56,5 +56,29 @@
                 "value": "netplay_nickname = \"${RETROARCH_NETPLAY_NICKNAME}\""
             }
         ]
+    },
+    "Dolphin": {
+        "paths": [
+            "${HOME}/.var/app/net.retrodeck.retrodeck/config/dolphin-emu/Dolphin.ini"
+        ],
+        "replacements": [
+            {
+                "name": "GameCube language",
+                "pattern": "SelectedLanguage =.*",
+                "value": "SelectedLanguage = ${DOLPHIN_GC_LANGUAGE}"
+            }
+        ]
+    },
+    "DolphinSYSCONF": {
+        "paths": [
+            "${HOME}/.var/app/net.retrodeck.retrodeck/data/dolphin-emu/Wii/shared2/sys/SYSCONF"
+        ],
+        "hex_replacements": [
+            {
+                "name": "Wii language",
+                "hex_pattern": "49 50 4c 2e 4c 4e 47 ??",
+                "hex_value": "${DOLPHIN_WII_LANGUAGE}"
+            }
+        ]
     }
 }

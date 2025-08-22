@@ -14,7 +14,15 @@ def load_config_map(config_path: Path) -> Dict[str, str]:
         return {}
     lines = (l.strip() for l in config_path.read_text().splitlines())
     pairs = (l.split('=', 1) for l in lines if l and not l.startswith('#') and '=' in l)
-    return {k.strip(): v.strip() for k, v in pairs if k.strip()}
+    config_map = {}
+    for k, v in pairs:
+        k = k.strip()
+        if k:
+            # Remove inline comments
+            if '#' in v:
+                v = v.split('#')[0]
+            config_map[k] = v.strip()
+    return config_map
 
 
 def main():
