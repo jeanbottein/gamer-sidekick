@@ -99,6 +99,16 @@
                         "name": "Dolphin / Skip GameCube boot sequence",
                         "pattern": "SkipIPL = *",
                         "value": "SkipIPL = ${DOLPHIN_GC_SKIP_BOOT}"
+                    },
+                    {
+                        "name": "Dolphin / GFX backend",
+                        "pattern": "GFXBackend =.*",
+                        "value": "GFXBackend = ${DOLPHIN_GFX_BACKEND}"
+                    },
+                    {
+                        "name": "Dolphin / Fullscreen",
+                        "pattern": "Fullscreen =.*",
+                        "value": "Fullscreen = ${DOLPHIN_FULLSCREEN}"
                     }
                 ]
             },
