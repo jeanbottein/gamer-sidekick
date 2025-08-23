@@ -4,7 +4,10 @@
             {
                 "paths": [ 
                     "${HOME}/.config/Ryujinx/Config.json",
-                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/Ryujinx/Config.json"
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/Ryujinx/Config.json",
+                    "${APPDATA}/Ryujinx/Config.json",
+                    "C:/Users/${USER}/AppData/Roaming/Ryujinx/Config.json",
+                    "C:/Ryujinx/portable/Config.json"
                 ],
                 "replacements": [
                     {
@@ -31,7 +34,10 @@
             {
                 "paths": [
                     "${HOME}/.config/Cemu/settings.xml",
-                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/Cemu/settings.xml"
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/Cemu/settings.xml",
+                    "${APPDATA}/Cemu/settings.xml",
+                    "C:/Cemu/settings.xml",
+                    "C:/Users/${USER}/AppData/Roaming/Cemu/settings.xml"
                 ],
                 "replacements": [
                     {
@@ -48,7 +54,10 @@
             {
                 "paths": [
                     "${HOME}/.var/app/org.libretro.RetroArch/config/retroarch/retroarch.cfg",
-                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/retroarch/retroarch.cfg"
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/retroarch/retroarch.cfg",
+                    "${APPDATA}/RetroArch/retroarch.cfg",
+                    "C:/RetroArch/retroarch.cfg",
+                    "C:/Users/${USER}/AppData/Roaming/RetroArch/retroarch.cfg"
                 ],
                 "replacements": [
                     {
@@ -75,7 +84,10 @@
             {
                 "paths": [
                     "${HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/Dolphin.ini",
-                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/dolphin-emu/Dolphin.ini"
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/config/dolphin-emu/Dolphin.ini",
+                    "${USERPROFILE}/Documents/Dolphin Emulator/Config/Dolphin.ini",
+                    "${APPDATA}/Dolphin Emulator/Config/Dolphin.ini",
+                    "C:/Users/${USER}/Documents/Dolphin Emulator/Config/Dolphin.ini"
                 ],
                 "replacements": [
                     {
@@ -93,7 +105,10 @@
             {
                 "paths": [
                     "${HOME}/.var/app/org.DolphinEmu.dolphin-emu/data/dolphin-emu/Wii/shared2/sys/SYSCONF",
-                    "${HOME}/.var/app/net.retrodeck.retrodeck/data/dolphin-emu/Wii/shared2/sys/SYSCONF"
+                    "${HOME}/.var/app/net.retrodeck.retrodeck/data/dolphin-emu/Wii/shared2/sys/SYSCONF",
+                    "${USERPROFILE}/Documents/Dolphin Emulator/Wii/shared2/sys/SYSCONF",
+                    "${APPDATA}/Dolphin Emulator/Wii/shared2/sys/SYSCONF",
+                    "C:/Users/${USER}/Documents/Dolphin Emulator/Wii/shared2/sys/SYSCONF"
                 ],
                 "replacements": [
                     {

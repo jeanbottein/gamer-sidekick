@@ -1,0 +1,26 @@
+{
+    "steam_directories": [
+        "/home/deck/.steam/steam/steamapps/common",
+        "/run/media/deck/*/steamapps/common",
+        "${HOME}/.steam/steam/steamapps/common",
+        "${HOME}/.local/share/Steam/steamapps/common",
+        "C:/Program Files (x86)/Steam/steamapps/common",
+        "C:/Program Files/Steam/steamapps/common",
+        "D:/Steam/steamapps/common",
+        "E:/Steam/steamapps/common",
+        "C:/Users/${USER}/AppData/Local/Steam/steamapps/common"
+    ],
+    "other_game_directories": [
+        "C:/Program Files (x86)/GOG Galaxy/Games",
+        "C:/Program Files/GOG Galaxy/Games",
+        "C:/GOG Games",
+        "C:/Games",
+        "D:/Games",
+        "E:/Games",
+        "C:/Program Files (x86)/Epic Games",
+        "C:/Program Files/Epic Games",
+        "C:/Users/${USER}/Documents/My Games",
+        "${HOME}/Games",
+        "${HOME}/.local/share/games"
+    ]
+}

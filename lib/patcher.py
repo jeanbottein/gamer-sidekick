@@ -5,16 +5,35 @@ import subprocess
 import glob
 import zlib
 import logging
+import re
 from pathlib import Path
 
 logger = logging.getLogger("patcher")
 
-GAMES_FOLDERS = [
-    "/home/deck/.steam/steam/steamapps/common",
-    "/run/media/deck/*/steamapps/common",
-]
-
 FLIPS_PATH = Path(__file__).resolve().parent.parent / 'bin' / 'flips'
+
+def load_games_locations():
+    """Load game directory locations from JSON file"""
+    json_path = Path(__file__).resolve().parent / 'games_locations.json'
+    with open(json_path, 'r') as f:
+        locations = json.load(f)
+    
+    # Combine all directories and resolve environment variables
+    all_dirs = locations.get('steam_directories', []) + locations.get('other_game_directories', [])
+    resolved_dirs = []
+    
+    for path in all_dirs:
+        # Resolve environment variables
+        resolved_path = os.path.expandvars(path)
+        
+        # Handle wildcards by expanding them
+        if '*' in resolved_path:
+            expanded_paths = glob.glob(resolved_path)
+            resolved_dirs.extend(expanded_paths)
+        else:
+            resolved_dirs.append(resolved_path)
+    
+    return resolved_dirs
 
 def check_flips_availability():
     """Check if flips command is available"""
@@ -38,8 +57,8 @@ def calculate_crc32(filename):
         return zlib.crc32(file.read()) & 0xFFFFFFFF
 
 def get_game_dirs():
-    paths = (glob.glob(f) if '*' in f else [f] for f in GAMES_FOLDERS)
-    return [p for group in paths for p in group if os.path.exists(p)]
+    game_locations = load_games_locations()
+    return [p for p in game_locations if os.path.exists(p)]
 
 def check_file_status(file_path, target_crc32, patched_crc32):
     actual_crc32 = calculate_crc32(file_path)

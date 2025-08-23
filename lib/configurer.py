@@ -2,23 +2,10 @@ import json
 import os
 import re
 import logging
+import glob
 from pathlib import Path
 
 logger = logging.getLogger("configurer")
-
-def load_config_file(file_path):
-    """Load environment variables from config file"""
-    with open(file_path, 'r') as file:
-        for line in file:
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                key, value = key.strip(), value.strip()
-                # Remove inline comments
-                if '#' in value:
-                    value = value.split('#')[0].strip()
-                if key and value:
-                    os.environ[key] = value
 
 def resolve_variables(text, config_vars=None):
     """Resolve ${VAR} placeholders in text"""
@@ -58,7 +45,12 @@ def load_apps_config(config_vars):
             for path in raw_paths:
                 resolved, unresolved_vars = resolve_variables(path, config_vars)
                 if resolved is not None:  # Only add if variables were resolved
-                    resolved_paths.append(resolved)
+                    # Expand wildcards if present
+                    if '*' in resolved or '?' in resolved:
+                        expanded_paths = glob.glob(resolved, recursive=True)
+                        resolved_paths.extend(expanded_paths)
+                    else:
+                        resolved_paths.append(resolved)
             
             if not resolved_paths:
                 continue
@@ -156,7 +148,7 @@ def modify_file(file_path, replacements):
     if not replacements:
         return
     
-    # logger.info(f"✅ {file_path} exists")
+    logger.info(f"🤖 {file_path} found")
 
     # Separate by type
     text_reps = [r for r in replacements if r.get('type') != 'hexadecimal']

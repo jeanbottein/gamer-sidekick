@@ -2,6 +2,8 @@
 
 A comprehensive tool for managing DRM-free games, emulator configurations, and game patches on Linux gaming systems like Steam Deck.
 
+> **Note**: This project was developed using vibe coding techniques with extensive curation work. While primarily tested on Linux (Steam Deck), Windows compatibility is included but untested - it may work but hasn't been verified.
+
 ## Overview
 
 Gamer Sidekick consists of three main modules:
@@ -16,7 +18,15 @@ Gamer Sidekick consists of three main modules:
 2. Edit `config.txt` with your paths and preferences
 3. Run the main script:
    ```bash
+   # Linux/macOS
+   ./gamer-sidekick.sh
+   # or
    python3 gamer-sidekick.py
+   
+   # Windows
+   gamer-sidekick.bat
+   # or
+   python gamer-sidekick.py
    ```
 
 ## Configuration File (config.txt)
@@ -192,7 +202,9 @@ The patcher applies file patches and replacements to games using a `patch.json` 
 ```
 gamer-sidekick/
 ├── gamer-sidekick.py          # Main script
-├── gamer-sidekick.sh          # Shell wrapper
+├── gamer-sidekick.sh          # Shell wrapper (Linux/macOS)
+├── gamer-sidekick.bat         # Batch script (Windows)
+├── gamer-sidekick.ps1         # PowerShell script (Windows)
 ├── config.txt                 # Configuration file
 ├── README.md                  # This file
 ├── lib/
@@ -207,12 +219,17 @@ gamer-sidekick/
 
 ## Requirements
 
-- Python 3.6+
+- Python 3.6+ (no external Python packages required - uses only standard library)
 - Standard Linux utilities (find, file, etc.)
 - For patching: **flips** command-line tool for BPS patch support
   - Download from: https://github.com/Alcaro/Flips/releases
   - Place the `flips` binary in `bin/flips` relative to the project root
   - Or ensure `flips` is available in your system PATH
+
+## Platform Support
+
+- **Linux**: Fully tested and supported (Steam Deck, desktop Linux)
+- **Windows**: Configuration paths included but untested - may work with proper Python environment
 
 ## Steam ROM Manager Integration
 
