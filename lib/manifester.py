@@ -100,7 +100,8 @@ def createManifest(game_dir):
         "title": get_title(game_dir),
         "target": format_path(target,game_dir),
         "startIn": format_path(os.path.dirname(target),game_dir),
-        "launchOptions": ""
+        "launchOptions": "",
+        "savePath": ""
     }
 
     write_manifest(manifest_path, manifest)

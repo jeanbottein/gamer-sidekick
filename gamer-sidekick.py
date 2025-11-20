@@ -6,6 +6,7 @@ import logging
 from lib import manifester 
 from lib import patcher
 from lib import configurer
+from lib import saver
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ def main():
     cfg = load_config_map(script_dir / 'config.txt')
 
     manifester.run(cfg)
+    saver.run(cfg)
     patcher.run(cfg)
     configurer.run(cfg)
 
