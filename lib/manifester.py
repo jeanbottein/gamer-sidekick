@@ -76,9 +76,13 @@ def find_best(game_dir, files):
     return best_match
 
 def _get_bin_posix(game_dir, maxdepth, arch_filter=""):
-    cmd = f"""find "{game_dir}" -maxdepth {maxdepth} -type f -executable -exec file {{}} + | \
-        grep executable | grep "{arch_filter}"  | sed "s#:.*##" | \
-        grep -v "/java/" | grep -v "/jre/" | grep -v "/lib/" """
+    if arch_filter == "x86":
+        cmd = f"""find "{game_dir}" -maxdepth {maxdepth} -type f -executable | \
+            grep -E "\\.x86$" | grep -v "x86_64" """
+    else:
+        cmd = f"""find "{game_dir}" -maxdepth {maxdepth} -type f -executable -exec file {{}} + | \
+            grep executable | grep "{arch_filter}"  | sed "s#:.*##" | \
+            grep -v "/java/" | grep -v "/jre/" | grep -v "/lib/" """
     return find_best(game_dir, run_find_exe(cmd))
 
 
@@ -159,21 +163,137 @@ def write_manifest(manifest_path, manifest):
         logger.error(f"❌ Error creating manifest in {os.path.basename(os.path.dirname(manifest_path))}: {str(e)}")
 
 
+def _os_tag():
+    if sys.platform.startswith("linux"):
+        return "linux"
+    if sys.platform.startswith("win"):
+        return "windows"
+    if sys.platform == "darwin":
+        return "macos"
+    return "other"
+
+
+def _arch_tag():
+    m = platform.machine().lower()
+    if "arm" in m or "aarch64" in m:
+        return "arm64"
+    if "64" in m or "x86_64" in m or "amd64" in m:
+        return "x86_64"
+    if "86" in m or "i386" in m or "i686" in m:
+        return "x86"
+    return "other"
+
+
+def _arch_from_filter(arch_filter, exe_path):
+    f = (arch_filter or "").lower()
+    if f in ("arm64", "aarch64"):
+        return "arm64"
+    if f in ("x86-64", "x86_64"):
+        return "x86_64"
+    if f == "x86":
+        return "x86"
+    base = os.path.basename(exe_path).lower()
+    if "arm64" in base or "aarch64" in base:
+        return "arm64"
+    if "x86_64" in base or "amd64" in base or "64" in base:
+        return "x86_64"
+    if "x86" in base or "32" in base:
+        return "x86"
+    return _arch_tag()
+
+
+def _pick_save_path(spec):
+    if isinstance(spec, str):
+        return spec
+    if isinstance(spec, list):
+        os_tag = _os_tag()
+        same_os = [s for s in spec if (s.get("os") or "").lower() == os_tag]
+        if not same_os:
+            same_os = [s for s in spec if not (s.get("os") or "").strip() or (s.get("os") or "").lower() == "any"]
+        pool = same_os or spec
+        for entry in pool:
+            path = entry.get("path") or entry.get("savePath") or entry.get("value") or ""
+            if path:
+                return path
+    return ""
+
+
+def _pick_target_entry(manifest):
+    targets = manifest.get("targets") or []
+    if not targets:
+        return None
+    os_tag = _os_tag()
+    arch_tag = _arch_tag()
+
+    same_os = [t for t in targets if (t.get("os") or "").lower() == os_tag]
+    if not same_os:
+        same_os = [t for t in targets if not (t.get("os") or "").strip() or (t.get("os") or "").lower() == "any"]
+    pool = same_os or targets
+
+    same_arch = [t for t in pool if (t.get("arch") or "").lower() == arch_tag]
+    if not same_arch:
+        same_arch = [t for t in pool if not (t.get("arch") or "").strip() or (t.get("arch") or "").lower() == "any"]
+    pool = same_arch or pool
+
+    return pool[0]
+
+
+def _collect_targets_for_manifest(game_dir):
+    os_tag = _os_tag()
+    real_game_dir = get_real_first_path(game_dir)
+    targets = []
+
+    if sys.platform.startswith("win"):
+        exe = get_target(game_dir)
+        if exe:
+            targets.append(
+                {
+                    "os": os_tag,
+                    "arch": _arch_tag(),
+                    "target": format_path(exe, game_dir),
+                    "startIn": format_path(os.path.dirname(exe), game_dir),
+                    "launchOptions": "",
+                }
+            )
+        return targets
+
+    seen = set()
+    for arch_filter in EXEC_FILTERS:
+        exe = get_bin(real_game_dir, 3, arch_filter)
+        if not exe or exe in seen:
+            continue
+        seen.add(exe)
+        arch = _arch_from_filter(arch_filter, exe)
+        targets.append(
+            {
+                "os": os_tag,
+                "arch": arch,
+                "target": format_path(exe, game_dir),
+                "startIn": format_path(os.path.dirname(exe), game_dir),
+                "launchOptions": "",
+            }
+        )
+    return targets
+
+
 def createManifest(game_dir):
     manifest_path = os.path.join(game_dir, manifest_filename)
     if(os.path.exists(manifest_path)):
         return
-    target = get_target(game_dir)
-    if target is None:
+    targets = _collect_targets_for_manifest(game_dir)
+    if not targets:
         logger.info(f"❌ {os.path.basename(game_dir)} no executable found")
         return None
     logger.info(f"✅ {os.path.basename(game_dir)} executable detected")
     manifest = {
         "title": get_title(game_dir),
-        "target": format_path(target,game_dir),
-        "startIn": format_path(os.path.dirname(target),game_dir),
-        "launchOptions": "",
-        "savePath": ""
+        "targets": targets,
+        "savePath": [
+            {
+                "os": _os_tag(),
+                "path": "",
+            }
+        ],
     }
 
     write_manifest(manifest_path, manifest)
@@ -190,18 +310,38 @@ def find_manifests(game_dir):
 def load_and_ajust_manifest(manifest_path):
     subfolder = os.path.dirname(manifest_path)
     with open(manifest_path, 'r') as f:
-        manifest=json.load(f)
-        if 'target' in manifest:
-            manifest['target'] = os.path.normpath(os.path.join(subfolder, manifest['target']))
-        if 'startIn' in manifest:
-            manifest['startIn'] = os.path.normpath(os.path.join(subfolder, manifest['startIn']))
-        return manifest
+        manifest = json.load(f)
+
+    if 'targets' in manifest:
+        entry = _pick_target_entry(manifest)
+        if not entry:
+            return None
+        target_path = entry.get('target') or ''
+        start_in_path = entry.get('startIn') or os.path.dirname(target_path)
+        save_spec = manifest.get("savePath", "")
+        return {
+            "title": manifest.get("title") or os.path.basename(os.path.dirname(manifest_path)),
+            "target": os.path.normpath(os.path.join(subfolder, target_path)),
+            "startIn": os.path.normpath(os.path.join(subfolder, start_in_path)),
+            "launchOptions": entry.get("launchOptions", ""),
+            "savePath": _pick_save_path(save_spec),
+        }
+
+    if 'target' in manifest:
+        manifest['target'] = os.path.normpath(os.path.join(subfolder, manifest['target']))
+    if 'startIn' in manifest:
+        manifest['startIn'] = os.path.normpath(os.path.join(subfolder, manifest['startIn']))
+    save_spec = manifest.get("savePath", "")
+    manifest["savePath"] = _pick_save_path(save_spec)
+    return manifest
 
 def create_main_manifest(games_dir):
     manifests = find_manifests(games_dir)
     main_manifest = []
     for manifest_path in manifests:
         manifest = load_and_ajust_manifest(manifest_path)
+        if not manifest:
+            continue
         main_manifest.append(manifest)
         logger.info(f"✅ {manifest['title']}")
 

@@ -193,7 +193,16 @@ def _sync_one_manifest(manifest_path: str, saves_root: str, strategy: str) -> No
         return
 
     title = manifest.get("title") or os.path.basename(os.path.dirname(manifest_path))
-    save_path = manifest.get("savePath", "")
+    raw_save = manifest.get("savePath", "")
+    try:
+        if hasattr(manifester, "_pick_save_path"):
+            save_path = manifester._pick_save_path(raw_save)
+        else:
+            save_path = raw_save
+    except Exception as e:
+        logger.error(f"❌ {title}: error resolving savePath {raw_save!r}: {e}")
+        return
+
     if not save_path:
         logger.info(f"ℹ️ {title}: no savePath defined, skipping")
         return
