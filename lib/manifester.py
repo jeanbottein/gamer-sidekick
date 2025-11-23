@@ -3,6 +3,8 @@ import json
 import subprocess
 import difflib
 import logging
+import sys
+import platform
 
 logger = logging.getLogger("manifester")
 
@@ -10,6 +12,40 @@ relative_path = True
 
 manifest_filename= "launch_manifest.json"
 manifests_filename= "manifests.json"
+
+if sys.platform.startswith("linux") or sys.platform == "darwin":
+    _machine = platform.machine().lower()
+    if "arm" in _machine or "aarch64" in _machine:
+        EXEC_FILTERS = ["arm64", "aarch64", "x86-64", "x86", ""]
+    elif "64" in _machine or "x86_64" in _machine or "amd64" in _machine:
+        EXEC_FILTERS = ["x86-64", "x86", "arm64", "aarch64", ""]
+    else:
+        EXEC_FILTERS = ["x86", "x86-64", "arm64", "aarch64", ""]
+else:
+    EXEC_FILTERS = [""]
+
+if sys.platform.startswith("win"):
+    _win_machine = platform.machine().lower()
+    if "arm" in _win_machine:
+        WIN_ARCH_GROUPS = [
+            ["arm64", "aarch64"],
+            ["x64", "amd64", "win64", "64"],
+            ["x86", "win32", "32"],
+        ]
+    elif "64" in _win_machine or "amd64" in _win_machine or "x86_64" in _win_machine:
+        WIN_ARCH_GROUPS = [
+            ["x64", "amd64", "win64", "64"],
+            ["x86", "win32", "32"],
+            ["arm64", "aarch64"],
+        ]
+    else:
+        WIN_ARCH_GROUPS = [
+            ["x86", "win32", "32"],
+            ["x64", "amd64", "win64", "64"],
+            ["arm64", "aarch64"],
+        ]
+else:
+    WIN_ARCH_GROUPS = []
 
 def run_find_exe(cmd):
     try:
@@ -39,18 +75,54 @@ def find_best(game_dir, files):
 
     return best_match
 
-def get_bin(game_dir, maxdepth, filter=""):
+def _get_bin_posix(game_dir, maxdepth, arch_filter=""):
     cmd = f"""find "{game_dir}" -maxdepth {maxdepth} -type f -executable -exec file {{}} + | \
-        grep executable | grep "{filter}"  | sed "s#:.*##" | \
+        grep executable | grep "{arch_filter}"  | sed "s#:.*##" | \
         grep -v "/java/" | grep -v "/jre/" | grep -v "/lib/" """
-    return find_best(game_dir,run_find_exe(cmd))
+    return find_best(game_dir, run_find_exe(cmd))
+
+
+def _get_bin_windows(game_dir, maxdepth):
+    root_depth = game_dir.rstrip(os.sep).count(os.sep)
+    candidates = []
+    for dirpath, dirnames, filenames in os.walk(game_dir):
+        depth = dirpath.rstrip(os.sep).count(os.sep) - root_depth
+        if depth >= maxdepth:
+            dirnames[:] = []
+        for name in filenames:
+            if not name.lower().endswith(".exe"):
+                continue
+            full = os.path.join(dirpath, name)
+            candidates.append(full)
+    if not candidates:
+        return None
+
+    for group in WIN_ARCH_GROUPS or [[]]:
+        if group:
+            group_candidates = []
+            for path in candidates:
+                base = os.path.basename(path).lower()
+                for token in group:
+                    if token in base:
+                        group_candidates.append(path)
+                        break
+            if group_candidates:
+                return find_best(game_dir, group_candidates)
+
+    return find_best(game_dir, candidates)
+
+
+def get_bin(game_dir, maxdepth, arch_filter=""):
+    if sys.platform.startswith("win"):
+        return _get_bin_windows(game_dir, maxdepth)
+    return _get_bin_posix(game_dir, maxdepth, arch_filter)
+
 
 def get_target(game_dir):
     real_game_dir=get_real_first_path(game_dir)
-    filters = ["x86-64", "x86", ""]  # Order of preference
-    for depth in range(1, 4):  # max depth of 3
-        for filter in filters:
-            exe = get_bin(real_game_dir, depth, filter)
+    for depth in range(1, 4):
+        for arch in EXEC_FILTERS:
+            exe = get_bin(real_game_dir, depth, arch)
             if exe is not None:
                 return exe
 
