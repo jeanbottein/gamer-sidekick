@@ -37,6 +37,7 @@ The `config.txt` file contains all your settings and paths. Here's an example:
 # Paths
 FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
 PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
+SAVESCOPY_PATH=/run/media/deck/SteamDeck-SD/saves-backup
 
 # Dolphin settings
 DOLPHIN_GC_LANGUAGE=2   # 0=eng, 1=ger, 2=fre, 3=spa
@@ -196,6 +197,20 @@ The patcher applies file patches and replacements to games using a `patch.json` 
 - Automatic backup creation before patching
 - Skip already patched files (detected by CRC32)
 - Comprehensive error handling and logging
+
+### 4. Saver
+
+The saver keeps emulator save directories in sync with a dedicated backup location defined by `SAVESCOPY_PATH`.
+
+#### SAVESCOPY_PATH workflow:
+1. **Configure paths** – Set `FREEGAMES_PATH` (where manifests live) and `SAVESCOPY_PATH` (a safe backup directory, ideally on slower but larger storage).
+2. **Annotate manifests** – Each game manifest can declare a `savePath`. When the saver runs, it resolves that per manifest.
+3. **Bi-directional sync** – For every manifest with a valid `savePath`, the saver creates a sanitized subfolder inside `SAVESCOPY_PATH` and compares files in both locations. Newer files overwrite older ones on either side so you can restore saves back to the original location just by running the tool.
+
+#### Data loss risks:
+1. Because the sync is two-way and time-stamp based, pointing `savePath` at the wrong folder or running with outdated backups can overwrite newer progress. Double-check manifests before enabling the feature.
+2. Accidental deletions are also mirrored—if a file is removed in the live save directory and the saver runs before you notice, the deletion will propagate to the backup copy.
+3. Always keep an external backup when first testing `SAVESCOPY_PATH`, especially for games that store saves alongside configuration files, to avoid cascading mistakes.
 
 ## Directory Structure
 

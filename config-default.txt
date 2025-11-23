@@ -1,6 +1,7 @@
 # Paths
 #FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
 #PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
+#SAVESCOPY_PATH=/run/media/deck/SteamDeck-SD/gamer-sidekick-backup
 
 # Dolphin settings
 #DOLPHIN_GC_LANGUAGE=2       # 0=eng, 1=ger, 2=fre, 3=spa
