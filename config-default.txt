@@ -3,6 +3,14 @@
 #PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
 #SAVESCOPY_PATH=/run/media/deck/SteamDeck-SD/gamer-sidekick-backup
 
+# SAVESCOPY_STRATEGY
+# backup: Create a backup of save files in the backup location
+# sync: Synchronize save files between the original and backup locations
+# restore: Restore save files from the backup location to the original location
+# (Dangerous, use with caution, will replace save files with backup files, each time the script is run)
+# Default: backup
+# SAVESCOPY_STRATEGY=backup # sync, backup, restore
+
 # Dolphin settings
 #DOLPHIN_GC_LANGUAGE=2       # 0=eng, 1=ger, 2=fre, 3=spa
 #DOLPHIN_WII_LANGUAGE=3      # 0=jap, 1=eng, 2=ger, 3=fre

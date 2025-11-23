@@ -6,11 +6,12 @@ A comprehensive tool for managing DRM-free games, emulator configurations, and g
 
 ## Overview
 
-Gamer Sidekick consists of three main modules:
+Gamer Sidekick consists of four main modules:
 
 1. **Configurer** - Automatically configures emulator settings based on your preferences
 2. **Manifester** - Generates manifests for DRM-free games to import into Steam via Steam ROM Manager
 3. **Patcher** - Applies patches and file replacements to games
+4. **Saver** - Manages save backups and optional synchronization
 
 ## Installation & Usage
 
@@ -37,7 +38,8 @@ The `config.txt` file contains all your settings and paths. Here's an example:
 # Paths
 FREEGAMES_PATH=/run/media/deck/SteamDeck-SD/linux-games
 PATCHES_PATH=/run/media/deck/SteamDeck-SD/mods
-SAVESCOPY_PATH=/run/media/deck/SteamDeck-SD/saves-backup
+SAVESCOPY_PATH=/run/media/deck/SteamDeck-SD/gamer-sidekick-backup
+SAVESCOPY_STRATEGY=backup  # backup (default), sync, or restore (dangerous)
 
 # Dolphin settings
 DOLPHIN_GC_LANGUAGE=2   # 0=eng, 1=ger, 2=fre, 3=spa
@@ -200,17 +202,47 @@ The patcher applies file patches and replacements to games using a `patch.json` 
 
 ### 4. Saver
 
-The saver keeps emulator save directories in sync with a dedicated backup location defined by `SAVESCOPY_PATH`.
+The saver manages per-game save data using `SAVESCOPY_PATH` and `SAVESCOPY_STRATEGY`.
 
-#### SAVESCOPY_PATH workflow:
-1. **Configure paths** – Set `FREEGAMES_PATH` (where manifests live) and `SAVESCOPY_PATH` (a safe backup directory, ideally on slower but larger storage).
-2. **Annotate manifests** – Each game manifest can declare a `savePath`. When the saver runs, it resolves that per manifest.
-3. **Bi-directional sync** – For every manifest with a valid `savePath`, the saver creates a sanitized subfolder inside `SAVESCOPY_PATH` and compares files in both locations. Newer files overwrite older ones on either side so you can restore saves back to the original location just by running the tool.
+Each game manifest can declare a `savePath`. For every manifest with a valid `savePath`, the saver:
+- Resolves the original save directory (`savePath`)
+- Creates a sanitized subfolder under `SAVESCOPY_PATH` based on the game title
+- Applies the selected strategy between the original and backup folders
 
-#### Data loss risks:
-1. Because the sync is two-way and time-stamp based, pointing `savePath` at the wrong folder or running with outdated backups can overwrite newer progress. Double-check manifests before enabling the feature.
-2. Accidental deletions are also mirrored—if a file is removed in the live save directory and the saver runs before you notice, the deletion will propagate to the backup copy.
-3. Always keep an external backup when first testing `SAVESCOPY_PATH`, especially for games that store saves alongside configuration files, to avoid cascading mistakes.
+#### Configuration
+
+- `SAVESCOPY_PATH` – Root directory where per-game save backups are stored.
+- `SAVESCOPY_STRATEGY` – One of:
+  - `backup` (default, recommended)
+  - `sync`
+  - `restore` (dangerous)
+
+If `SAVESCOPY_STRATEGY` is missing or invalid, the tool automatically falls back to `backup`.
+
+#### Strategies
+
+- **backup (default, recommended)**
+  - One-way copy from the original save directory (`savePath`) to the backup directory under `SAVESCOPY_PATH`.
+  - Existing files in the backup are overwritten by the originals when they share the same relative path.
+  - The original save directory is never modified by this mode.
+
+- **sync**
+  - Metadata-aware one-way mirroring between the original and backup directories.
+  - A hidden `.gamer-sidekick` metadata file is stored in each directory to track the last sync snapshot.
+  - On first sync (no metadata), the side with the most recently modified files is mirrored to the other side.
+  - On later syncs, only the side that changed since the last snapshot is mirrored to the other; if both changed, the original save directory is preferred and a warning is logged.
+
+- **restore (dangerous)**
+  - One-way copy from the backup directory under `SAVESCOPY_PATH` back to the original save directory.
+  - Existing files in the original directory are overwritten by the backup when they share the same relative path.
+  - Intended for recovery after reinstalling or moving games; use with caution.
+
+#### Safety guidelines
+
+- Start with the `backup` strategy until you have confirmed your manifests and paths.
+- Use `sync` only if you understand that newer files from either side can overwrite older ones.
+- Use `restore` only when you explicitly want to replace current saves with the backup contents.
+- For critical games, keep an additional external backup before changing strategies.
 
 ## Directory Structure
 
