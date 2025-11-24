@@ -75,6 +75,8 @@ def _build_file_map(root: str) -> dict:
         return files
     for dirpath, dirnames, filenames in os.walk(root):
         for fname in filenames:
+            if fname == SYNC_META_NAME:
+                continue
             full = os.path.join(dirpath, fname)
             rel = os.path.relpath(full, root)
             files[rel] = full
